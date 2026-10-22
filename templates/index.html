@@ -1,46 +1,434 @@
-<!doctype html>
-<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Sameul Task 3 | SkyRoute Pipeline</title>
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SkyRoute | Data Analytics Dashboard</title>
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
 <style>
-body{margin:0;background:#f3f5fa;color:#172033;font-family:Segoe UI,Arial,sans-serif}
-header{background:#162668;color:white;padding:24px 5%}main{max-width:1180px;margin:24px auto;padding:0 16px}
-.panel,.metric{background:#fff;border-radius:12px;padding:17px;box-shadow:0 2px 10px #0001}
-.notice{background:#fff3cf;border:1px solid #f0d88e;border-radius:9px;padding:12px;margin:14px 0}
-.metrics{display:grid;grid-template-columns:repeat(auto-fit,minmax(145px,1fr));gap:12px;margin:15px 0}
-.label{font-size:13px;color:#68738a}.value{font-size:26px;font-weight:bold;margin-top:7px}
-.charts{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:14px;margin:14px 0}
-button{background:#162668;color:#fff;border:0;border-radius:7px;padding:10px 14px;cursor:pointer}
-table{border-collapse:collapse;width:100%;font-size:13px}th,td{padding:8px;border-bottom:1px solid #e7eaf1;text-align:left;white-space:nowrap}
-.scroll{overflow:auto}canvas{max-height:270px}.flash{background:#e5f6eb;padding:10px;border-radius:8px;margin:10px 0}
-</style></head><body>
-<header><h1>SkyRoute Logistics Ltd</h1><p>Unit 3 · Task 3: Deployment, Monitoring & Troubleshooting</p></header>
-<main>
-<div class="notice"><b>Student project demo.</b> If no company dataset is available, place the supplied sample CSV in the data folder. Clearly label sample results as demonstration data, not actual company data.</div>
-{% with messages=get_flashed_messages() %}{% for m in messages %}<div class="flash">{{m}}</div>{% endfor %}{% endwith %}
-<section class="panel"><form method="post" enctype="multipart/form-data"><b>Import logistics CSV:</b>
-<input type="file" name="dataset" accept=".csv" required> <button type="submit">Upload and process</button></form>
-<p><a href="/run">Run pipeline again</a></p></section>
-{% if error %}<section class="panel"><h2>Pipeline error</h2><p>{{error}}</p><p>Check outputs/pipeline.log and verify the source CSV.</p></section>
+:root {
+  --primary: #5b21b6;
+  --secondary: #7c3aed;
+  --accent: #0891b2;
+  --pink: #db2777;
+  --green: #059669;
+  --orange: #ea580c;
+  --bg: #f6f4ff;
+  --text: #242044;
+  --muted: #77748d;
+}
+
+* { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  font-family: "Segoe UI", Arial, sans-serif;
+  background: var(--bg);
+  color: var(--text);
+}
+
+header {
+  background: linear-gradient(120deg, #3b0764, #6d28d9, #0891b2);
+  padding: 30px 6%;
+  color: white;
+}
+
+header h1 {
+  margin: 0 0 9px;
+  font-size: 29px;
+}
+
+header p {
+  margin: 0;
+  color: #ede9fe;
+}
+
+.container {
+  max-width: 1250px;
+  margin: 28px auto;
+  padding: 0 22px;
+}
+
+.section-title {
+  margin: 26px 0 16px;
+  font-size: 22px;
+  color: #4c1d95;
+}
+
+.panel {
+  background: white;
+  border: 1px solid #e9e3fa;
+  border-radius: 17px;
+  padding: 24px;
+  margin-bottom: 24px;
+  box-shadow: 0 7px 24px rgba(65, 36, 120, .07);
+}
+
+.panel h2 {
+  color: #4c1d95;
+  margin-top: 0;
+}
+
+.upload-form {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  align-items: center;
+}
+
+input[type="file"] {
+  max-width: 100%;
+  padding: 11px;
+  border: 1px solid #ddd6fe;
+  border-radius: 9px;
+  background: #faf9ff;
+}
+
+button, .run-link {
+  display: inline-block;
+  padding: 12px 18px;
+  border: none;
+  border-radius: 9px;
+  background: linear-gradient(120deg, #6d28d9, #0891b2);
+  color: white;
+  font-weight: 600;
+  text-decoration: none;
+  cursor: pointer;
+}
+
+button:hover, .run-link:hover {
+  opacity: .88;
+}
+
+.run-link {
+  margin-top: 16px;
+  background: #db2777;
+}
+
+.metrics-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(155px, 1fr));
+  gap: 17px;
+}
+
+.metric-card {
+  padding: 21px;
+  border-radius: 15px;
+  background: white;
+  border: 1px solid #e9e3fa;
+  box-shadow: 0 5px 17px rgba(65, 36, 120, .06);
+  border-top: 4px solid var(--card-color, #7c3aed);
+  transition: transform .2s ease;
+}
+
+.metric-card:hover {
+  transform: translateY(-4px);
+}
+
+.metric-card p {
+  margin: 0 0 13px;
+  font-size: 13px;
+  color: var(--muted);
+}
+
+.metric-card h3 {
+  font-size: 27px;
+  margin: 0;
+  color: var(--card-color, #5b21b6);
+  overflow-wrap: anywhere;
+}
+
+.metric-card:nth-child(1) { --card-color: #7c3aed; }
+.metric-card:nth-child(2) { --card-color: #059669; }
+.metric-card:nth-child(3) { --card-color: #db2777; }
+.metric-card:nth-child(4) { --card-color: #0891b2; }
+.metric-card:nth-child(5) { --card-color: #ea580c; }
+.metric-card:nth-child(6) { --card-color: #4f46e5; }
+.metric-card:nth-child(7) { --card-color: #0d9488; }
+
+.charts-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 20px;
+  margin: 24px 0;
+}
+
+.chart-card {
+  min-width: 0;
+  background: white;
+  border: 1px solid #e9e3fa;
+  border-radius: 17px;
+  padding: 22px;
+  box-shadow: 0 7px 24px rgba(65, 36, 120, .06);
+}
+
+.chart-card h3 {
+  margin-top: 0;
+  color: #5b21b6;
+}
+
+.chart-area {
+  position: relative;
+  height: 270px;
+}
+
+.alert {
+  padding: 14px 17px;
+  margin-bottom: 15px;
+  border-radius: 10px;
+  background: #ecfeff;
+  color: #155e75;
+}
+
+.alert-error {
+  background: #fff1f2;
+  color: #be123c;
+}
+
+.status {
+  display: inline-block;
+  padding: 7px 12px;
+  border-radius: 20px;
+  background: #d1fae5;
+  color: #047857;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.table-wrap { overflow-x: auto; }
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 14px;
+}
+
+th, td {
+  padding: 13px;
+  text-align: left;
+  border-bottom: 1px solid #eee8fa;
+  white-space: nowrap;
+}
+
+th {
+  background: #ede9fe;
+  color: #4c1d95;
+}
+
+tbody tr:hover { background: #faf5ff; }
+
+footer {
+  margin-top: 35px;
+  padding: 23px;
+  text-align: center;
+  color: #77748d;
+  background: white;
+}
+
+@media (max-width: 700px) {
+  .charts-grid { grid-template-columns: 1fr; }
+  header h1 { font-size: 24px; }
+  .container { padding: 0 13px; }
+  .panel { padding: 17px; }
+}
+</style>
+</head>
+
+<body>
+<header>
+  <h1>SkyRoute Data Analytics</h1>
+  <p>Smart Data Cleaning · Quality Monitoring · Pipeline Analytics</p>
+</header>
+
+<main class="container">
+
+{% with messages = get_flashed_messages() %}
+  {% for message in messages %}
+    <div class="alert">{{ message }}</div>
+  {% endfor %}
+{% endwith %}
+
+<section class="panel">
+  <h2>📂 Upload Your Dataset</h2>
+  <p>Upload a CSV file to process and analyse delivery data.</p>
+  <form class="upload-form" action="/" method="POST" enctype="multipart/form-data">
+    <input type="file" name="dataset" accept=".csv" required>
+    <button type="submit">Upload & Process</button>
+  </form>
+  <a class="run-link" href="/run">↻ Run Pipeline Again</a>
+</section>
+
+{% if error %}
+<section class="panel alert-error">
+  <h2>Pipeline Error</h2>
+  <p>{{ error }}</p>
+</section>
+
 {% elif result %}
-<div class="metrics">
-{% for label,value in [('Rows before',result.metrics.before),('Rows after',result.metrics.after),('Duplicates removed',result.metrics.duplicates),('Columns',result.metrics.columns),('Missing cells',result.metrics.missing),('Invalid dates',result.metrics.invalid_dates),('Runtime (seconds)',result.metrics.duration)] %}
-<div class="metric"><div class="label">{{label}}</div><div class="value">{{value}}</div></div>{% endfor %}
-</div>
-<div class="charts"><section class="panel"><h3>Shipment status</h3><canvas id="status"></canvas></section>
-<section class="panel"><h3>Shipment mode</h3><canvas id="modes"></canvas></section>
-<section class="panel"><h3>Shipments by country</h3><canvas id="countries"></canvas></section></div>
-<section class="panel"><h3>Data preview — first 10 rows</h3><p>Source: {{result.source}}</p><div class="scroll">
-<table><thead><tr>{% for c in columns %}<th>{{c}}</th>{% endfor %}</tr></thead><tbody>
-{% for row in rows %}<tr>{% for c in columns %}<td>{{row[c]}}</td>{% endfor %}</tr>{% endfor %}
-</tbody></table></div></section>
-<section class="panel" style="margin-top:14px"><h3>Generated evidence</h3><ul>
-<li>outputs/cleaned_delivery_data.csv — processed data</li><li>outputs/data_quality_report.txt — validation report</li>
-<li>outputs/pipeline.log — execution and error logs</li><li>outputs/backups/ — prior output copies for rollback</li></ul>
-<p><b>Note:</b> This is a local web dashboard. Scheduling, serverless deployment and Git history require separate setup/evidence.</p></section>
-{% endif %}
-</main>
+
+<h2 class="section-title">📊 Data Quality Overview</h2>
+
+<section class="metrics-grid">
+  <div class="metric-card">
+    <p>Rows Before</p>
+    <h3>{{ result.metrics.before }}</h3>
+  </div>
+  <div class="metric-card">
+    <p>Rows After</p>
+    <h3>{{ result.metrics.after }}</h3>
+  </div>
+  <div class="metric-card">
+    <p>Duplicates Removed</p>
+    <h3>{{ result.metrics.duplicates }}</h3>
+  </div>
+  <div class="metric-card">
+    <p>Total Columns</p>
+    <h3>{{ result.metrics.columns }}</h3>
+  </div>
+  <div class="metric-card">
+    <p>Missing Cells</p>
+    <h3>{{ result.metrics.missing }}</h3>
+  </div>
+  <div class="metric-card">
+    <p>Invalid Dates</p>
+    <h3>{{ result.metrics.invalid_dates }}</h3>
+  </div>
+  <div class="metric-card">
+    <p>Runtime (sec)</p>
+    <h3>{{ result.metrics.duration }}</h3>
+  </div>
+</section>
+
+<h2 class="section-title">📈 Pipeline Charts</h2>
+
+<section class="charts-grid">
+  <div class="chart-card">
+    <h3>Rows Before vs After</h3>
+    <div class="chart-area"><canvas id="rowsChart"></canvas></div>
+  </div>
+  <div class="chart-card">
+    <h3>Delivery Status</h3>
+    <div class="chart-area"><canvas id="statusChart"></canvas></div>
+  </div>
+  <div class="chart-card">
+    <h3>Delivery Modes</h3>
+    <div class="chart-area"><canvas id="modesChart"></canvas></div>
+  </div>
+  <div class="chart-card">
+    <h3>Country Distribution</h3>
+    <div class="chart-area"><canvas id="countriesChart"></canvas></div>
+  </div>
+</section>
+
+<section class="panel">
+  <h2>📋 Processed Dataset</h2>
+
+  {% if result.status %}
+    <p><span class="status">✓ Pipeline Completed</span></p>
+  {% endif %}
+
+  {% if columns and rows %}
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr>
+          {% for column in columns %}
+            <th>{{ column }}</th>
+          {% endfor %}
+        </tr>
+      </thead>
+      <tbody>
+        {% for row in rows %}
+        <tr>
+          {% for column in columns %}
+            <td>{{ row[column] }}</td>
+          {% endfor %}
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% else %}
+    <p>No processed rows to display yet.</p>
+  {% endif %}
+</section>
+
 <script>
-function draw(id,obj,type){let labels=Object.keys(obj),values=Object.values(obj);if(!labels.length)return;new Chart(document.getElementById(id),{type,data:{labels,datasets:[{label:"Records",data:values}]},options:{responsive:true}})}
-{% if result %}draw("status",{{result.status|tojson}},"doughnut");draw("modes",{{result.modes|tojson}},"bar");draw("countries",{{result.countries|tojson}},"bar");{% endif %}
-</script></body></html>
+const beforeRows = Number({{ result.metrics.before | tojson }});
+const afterRows = Number({{ result.metrics.after | tojson }});
+
+new Chart(document.getElementById("rowsChart"), {
+  type: "bar",
+  data: {
+    labels: ["Before Cleaning", "After Cleaning"],
+    datasets: [{
+      label: "Number of Rows",
+      data: [beforeRows, afterRows],
+      backgroundColor: ["#8b5cf6", "#10b981"],
+      borderRadius: 8
+    }]
+  },
+  options: {
+    responsive: true,
+    maintainAspectRatio: false,
+    scales: { y: { beginAtZero: true } }
+  }
+});
+
+function drawChart(id, data, type, colors) {
+  const element = document.getElementById(id);
+  if (!element) return;
+
+  const values = data && typeof data === "object" ? data : {};
+  new Chart(element, {
+    type: type,
+    data: {
+      labels: Object.keys(values),
+      datasets: [{
+        label: "Count",
+        data: Object.values(values).map(Number),
+        backgroundColor: colors,
+        borderRadius: 6
+      }]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: { legend: { position: "bottom" } },
+      ...(type === "bar" ? {
+        scales: { y: { beginAtZero: true } }
+      } : {})
+    }
+  });
+}
+
+const statusData = {{ (result.status if result.status is mapping else {}) | tojson }};
+const modesData = {{ (result.modes if result.modes is mapping else {}) | tojson }};
+const countriesData = {{ (result.countries if result.countries is mapping else {}) | tojson }};
+
+drawChart("statusChart", statusData, "doughnut",
+  ["#7c3aed", "#06b6d4", "#ec4899", "#f59e0b", "#10b981"]);
+
+drawChart("modesChart", modesData, "pie",
+  ["#0891b2", "#6366f1", "#f97316", "#db2777", "#14b8a6"]);
+
+drawChart("countriesChart", countriesData, "bar",
+  ["#7c3aed", "#0891b2", "#db2777", "#059669", "#ea580c"]);
+</script>
+
+{% else %}
+<section class="panel">
+  <h2>Welcome to SkyRoute</h2>
+  <p>Upload a CSV dataset to view cleaning results, quality metrics and interactive charts.</p>
+</section>
+{% endif %}
+
+</main>
+
+<footer>
+  SkyRoute Logistics | Data Pipeline & Analytics Dashboard
+</footer>
+</body>
+</html>

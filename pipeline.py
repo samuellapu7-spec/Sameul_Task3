@@ -44,10 +44,10 @@ def choose_source(source_path=None):
 
         return source
 
-    candidates = sorted(
+    candidates = [
         p for p in DATA_DIR.glob("*.csv")
         if p.name != CLEANED_FILE.name
-    )
+    ]
 
     if not candidates:
         raise FileNotFoundError(
@@ -55,7 +55,8 @@ def choose_source(source_path=None):
             "Add a CSV file to the data folder."
         )
 
-    return candidates[0]
+    # Use the most recently added/updated CSV (e.g. the latest upload).
+    return max(candidates, key=lambda p: p.stat().st_mtime)
 
 
 def process_pipeline(source_path=None):
@@ -102,7 +103,8 @@ def process_pipeline(source_path=None):
             parsed = pd.to_datetime(
                 original,
                 errors="coerce",
-                dayfirst=True
+                dayfirst=True,
+                format="mixed"
             )
 
             invalid_mask = (
@@ -113,8 +115,8 @@ def process_pipeline(source_path=None):
 
             invalid_dates[column] = int(invalid_mask.sum())
 
+            # Invalid or empty dates stay as missing values (blank in CSV).
             df[column] = parsed.dt.strftime("%Y-%m-%d")
-            df.loc[parsed.isna(), column] = ""
 
             logging.info(
                 "Date validation: %s; invalid values: %d",
@@ -292,7 +294,10 @@ def rollback_latest_backup():
 
 
 if __name__ == "__main__":
-    result = process_pipeline()
+    import sys
+
+    # Optional: python pipeline.py data\your_file.csv
+    result = process_pipeline(sys.argv[1] if len(sys.argv) > 1 else None)
 
     print("Pipeline completed successfully.")
     print("Metrics:", result["metrics"])
