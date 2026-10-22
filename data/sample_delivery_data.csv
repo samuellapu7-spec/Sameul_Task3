@@ -1,0 +1,13 @@
+ID,Country,Shipment Mode,Scheduled Delivery Date,Delivered to Client Date,Status,Weight (Kilograms)
+SHIP001,India,Air,01/10/2026,03/10/2026,Delivered,120
+SHIP002,United Kingdom,Road,02/10/2026,02/10/2026,Delivered,250
+SHIP003,India,Air,03/10/2026,,In Transit,90
+SHIP004,Kenya,Sea,04/10/2026,08/10/2026,Delayed,500
+SHIP005,India,Road,05/10/2026,05/10/2026,Delivered,180
+SHIP006,United Kingdom,Air,06/10/2026,,In Transit,75
+SHIP007,Kenya,Sea,07/10/2026,11/10/2026,Delayed,420
+SHIP008,India,Road,08/10/2026,08/10/2026,Delivered,210
+SHIP008,India,Road,08/10/2026,08/10/2026,Delivered,210
+SHIP009,United Kingdom,Air,not-a-date,,In Transit,60
+SHIP010,Kenya,Sea,10/10/2026,12/10/2026,Delayed,330
+SHIP011,India,Air,11/10/2026,11/10/2026,Delivered,140

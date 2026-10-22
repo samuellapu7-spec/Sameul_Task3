@@ -1,0 +1,13 @@
+"""
+Windows Task Scheduler setup notes:
+Program/script: <project path>\\.venv\\Scripts\\python.exe
+Add arguments: pipeline.py
+Start in: <project path>
+Trigger: daily or at the required reporting time.
+
+For manual run:
+    python pipeline.py
+
+For automated scheduled execution, create a task in Windows Task Scheduler using the values above.
+Do not assume it is scheduled until the task is created and a successful run is verified.
+"""

@@ -1,0 +1,46 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Sameul Task 3 | SkyRoute Pipeline</title>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<style>
+body{margin:0;background:#f3f5fa;color:#172033;font-family:Segoe UI,Arial,sans-serif}
+header{background:#162668;color:white;padding:24px 5%}main{max-width:1180px;margin:24px auto;padding:0 16px}
+.panel,.metric{background:#fff;border-radius:12px;padding:17px;box-shadow:0 2px 10px #0001}
+.notice{background:#fff3cf;border:1px solid #f0d88e;border-radius:9px;padding:12px;margin:14px 0}
+.metrics{display:grid;grid-template-columns:repeat(auto-fit,minmax(145px,1fr));gap:12px;margin:15px 0}
+.label{font-size:13px;color:#68738a}.value{font-size:26px;font-weight:bold;margin-top:7px}
+.charts{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:14px;margin:14px 0}
+button{background:#162668;color:#fff;border:0;border-radius:7px;padding:10px 14px;cursor:pointer}
+table{border-collapse:collapse;width:100%;font-size:13px}th,td{padding:8px;border-bottom:1px solid #e7eaf1;text-align:left;white-space:nowrap}
+.scroll{overflow:auto}canvas{max-height:270px}.flash{background:#e5f6eb;padding:10px;border-radius:8px;margin:10px 0}
+</style></head><body>
+<header><h1>SkyRoute Logistics Ltd</h1><p>Unit 3 · Task 3: Deployment, Monitoring & Troubleshooting</p></header>
+<main>
+<div class="notice"><b>Student project demo.</b> If no company dataset is available, place the supplied sample CSV in the data folder. Clearly label sample results as demonstration data, not actual company data.</div>
+{% with messages=get_flashed_messages() %}{% for m in messages %}<div class="flash">{{m}}</div>{% endfor %}{% endwith %}
+<section class="panel"><form method="post" enctype="multipart/form-data"><b>Import logistics CSV:</b>
+<input type="file" name="dataset" accept=".csv" required> <button type="submit">Upload and process</button></form>
+<p><a href="/run">Run pipeline again</a></p></section>
+{% if error %}<section class="panel"><h2>Pipeline error</h2><p>{{error}}</p><p>Check outputs/pipeline.log and verify the source CSV.</p></section>
+{% elif result %}
+<div class="metrics">
+{% for label,value in [('Rows before',result.metrics.before),('Rows after',result.metrics.after),('Duplicates removed',result.metrics.duplicates),('Columns',result.metrics.columns),('Missing cells',result.metrics.missing),('Invalid dates',result.metrics.invalid_dates),('Runtime (seconds)',result.metrics.duration)] %}
+<div class="metric"><div class="label">{{label}}</div><div class="value">{{value}}</div></div>{% endfor %}
+</div>
+<div class="charts"><section class="panel"><h3>Shipment status</h3><canvas id="status"></canvas></section>
+<section class="panel"><h3>Shipment mode</h3><canvas id="modes"></canvas></section>
+<section class="panel"><h3>Shipments by country</h3><canvas id="countries"></canvas></section></div>
+<section class="panel"><h3>Data preview — first 10 rows</h3><p>Source: {{result.source}}</p><div class="scroll">
+<table><thead><tr>{% for c in columns %}<th>{{c}}</th>{% endfor %}</tr></thead><tbody>
+{% for row in rows %}<tr>{% for c in columns %}<td>{{row[c]}}</td>{% endfor %}</tr>{% endfor %}
+</tbody></table></div></section>
+<section class="panel" style="margin-top:14px"><h3>Generated evidence</h3><ul>
+<li>outputs/cleaned_delivery_data.csv — processed data</li><li>outputs/data_quality_report.txt — validation report</li>
+<li>outputs/pipeline.log — execution and error logs</li><li>outputs/backups/ — prior output copies for rollback</li></ul>
+<p><b>Note:</b> This is a local web dashboard. Scheduling, serverless deployment and Git history require separate setup/evidence.</p></section>
+{% endif %}
+</main>
+<script>
+function draw(id,obj,type){let labels=Object.keys(obj),values=Object.values(obj);if(!labels.length)return;new Chart(document.getElementById(id),{type,data:{labels,datasets:[{label:"Records",data:values}]},options:{responsive:true}})}
+{% if result %}draw("status",{{result.status|tojson}},"doughnut");draw("modes",{{result.modes|tojson}},"bar");draw("countries",{{result.countries|tojson}},"bar");{% endif %}
+</script></body></html>
